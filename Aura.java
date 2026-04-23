@@ -1,7 +1,9 @@
+
 //courtosy of macus
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,14 +19,27 @@ public class aura extends LinearOpMode {
         DcMotor backLeftMotor = hardwareMap.dcMotor.get("BL");
         DcMotor frontRightMotor = hardwareMap.dcMotor.get("FR");
         DcMotor backRightMotor = hardwareMap.dcMotor.get("BR");
-       
+        DcMotor intakeMotor = hardwareMap.dcMotor.get("IM");
+        DcMotor leftShooterMotor = hardwareMap.dcMotor.get("S1");
+        DcMotor rightShooterMotor = hardwareMap.dcMotor.get("S2");
+        Servo stopper = hardwareMap.servo.get("COCK(blocker)");
+        
+        CRServo BRS = hardwareMap.crservo.get("BRS");
+        CRServo BLS = hardwareMap.crservo.get("BLS");
+        CRServo FRS = hardwareMap.crservo.get("FRS");
+        CRServo FLS = hardwareMap.crservo.get("FLS");
         
         
         //reverse some motors
-        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        
+        rightShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        
+        BLS.setDirection(DcMotorSimple.Direction.REVERSE);
+        FLS.setDirection(DcMotorSimple.Direction.REVERSE);
         
         
         
@@ -36,64 +51,63 @@ public class aura extends LinearOpMode {
         
         //main loop
         while (opModeIsActive()) {
+            
+            //movement variables
+            //driving
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
             
-            double shoot = 0;
-            double servoPosition = 0;
-            double motorOffVariable = 0;
+            //interior servos
+            double bleh = gamepad2.left_stick_x;
             
-            //initialize servo
+            //intake
+            double aa = gamepad1.right_trigger;
             
-            
-            
-            //shoot buttons initialize
+            //shooting
+            boolean xbutton = gamepad2.x;
+            boolean enable_shooter = gamepad2.a;
             boolean b = gamepad2.b;
-            boolean a = gamepad2.a;
-            boolean c = gamepad2.x;
+            
+            //c block
             boolean yy = gamepad2.y;
             
-            //independent shooter motor buttons initialize
-            double LeftStick = gamepad2.left_stick_x;
-            double RightStick = gamepad2.right_stick_x;
             
-            //setting shoot speeds to the buttons
-            if (b == true){
-                shoot = 1;
-                motorOffVariable = 1;
-                
-            } else if (b == false && c == false && a == false) {
-                shoot = 0;
-            }
             
-            if (a == true){
-                shoot = 0.9;
-                motorOffVariable = 1;
-            } else if (b == false && c == false && a == false) {
-                shoot = 0;
-            }
+            //other variables
+            double power = 0;
+            double intakePower = 0;
+            int servoPosition = -50;
             
-            if (c == true){
-                shoot = 0.8;
-            } else if (b == false && c == false && a == false){
-                shoot = 0;
-            }
             
-            if (yy == true){
-                servoPosition = 0.20;
-            } else {
-                servoPosition = 0.90;
-            }
+            
             
             //wheel power calculations
+            // Divides the 
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator;
             double backLeftPower = (y - x + rx) / denominator;
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
-
-           
+            
+            double interiorPower = bleh;
+            
+            //setting power based on input
+            if (xbutton){
+                power = 0.5;
+            } else if (enable_shooter){
+                power = 0.65;
+            } else if (b){
+                power = 0.75;
+            }
+            
+            if (yy){
+                servoPosition = 50;
+            }
+            
+            if (aa > 0){
+                intakePower = 1;
+            }
 
             //set the motor power
             frontLeftMotor.setPower(frontLeftPower);
@@ -101,9 +115,15 @@ public class aura extends LinearOpMode {
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
             
+            BRS.setPower(interiorPower);
+            BLS.setPower(interiorPower);
+            FRS.setPower(interiorPower);
+            FLS.setPower(interiorPower);
             
-            
+            leftShooterMotor.setPower(power);
+            rightShooterMotor.setPower(power);
+            stopper.setPosition(servoPosition); 
+            intakeMotor.setPower(intakePower);
         }
     }
 }
- 
